@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"io"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/image/draw"
 )
@@ -78,12 +77,9 @@ func DecodeToImage(r io.Reader) image.Image {
 }
 
 func IsHashable(path string) bool {
-	ext := strings.ToLower(filepath.Ext(path))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".gif":
-		return true
-	}
-	return false
+	ext := filepath.Ext(path)
+	mt := MediaType(ext)
+	return mt >= StdImage && mt <= Video
 }
 
 func MakePhash(filename string) []byte {
