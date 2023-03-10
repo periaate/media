@@ -16,7 +16,7 @@ var ffmpegNotFound = false
 // including video files.
 func MakeThumbnail(input io.Reader, output io.Writer) error {
 	args := []string{"-i", "pipe:", "-f", "image2pipe", "-vframes", "1", "-vf", "scale=1024:1024:force_original_aspect_ratio=decrease", "-q:v", "10", "pipe:.jpg"}
-	return Run(input, output, args...)
+	return RunFfmpeg(input, output, args...)
 }
 
 func MakeThumb(in io.Reader, outpath string) error {
@@ -31,7 +31,7 @@ func MakeThumb(in io.Reader, outpath string) error {
 	return os.WriteFile(outpath, thumbBuf.Bytes(), 0777)
 }
 
-func Run(r io.Reader, w io.Writer, args ...string) error {
+func RunFfmpeg(r io.Reader, w io.Writer, args ...string) error {
 	if ffmpegNotFound {
 		return ErrFFMPEGNotFound
 	}
