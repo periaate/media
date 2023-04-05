@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"image"
 	_ "image/jpeg"
-	"media"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/periaate/media"
 )
 
 // TestFfmpeg tests that the function works on some level. It does not test

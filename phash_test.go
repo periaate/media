@@ -2,10 +2,11 @@ package media_test
 
 import (
 	"encoding/hex"
-	"media"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/periaate/media"
 )
 
 const (

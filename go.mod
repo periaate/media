@@ -1,4 +1,4 @@
-module media
+module github.com/periaate/media
 
 go 1.19
 
