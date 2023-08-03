@@ -1,5 +1,5 @@
 module github.com/periaate/media
 
-go 1.19
+go 1.20
 
-require golang.org/x/image v0.6.0
+require golang.org/x/image v0.10.0
