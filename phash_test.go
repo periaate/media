@@ -1,12 +1,11 @@
-package media_test
+package media
 
 import (
 	"encoding/hex"
 	"os"
+	"path"
 	"strings"
 	"testing"
-
-	"github.com/periaate/media"
 )
 
 const (
@@ -15,6 +14,7 @@ const (
 )
 
 // test hashes of all files in ./test
+// MakePhash also calls OpenImage, which tests thumbnailing indirectly
 func TestPerceptualHash(t *testing.T) {
 	files, err := os.ReadDir("./test")
 	if err != nil {
@@ -22,34 +22,14 @@ func TestPerceptualHash(t *testing.T) {
 	}
 
 	for _, file := range files {
-		fp := "./test/" + file.Name()
-		img, err := media.OpenImage(fp)
+		hash, err := MakePhash(path.Join("./test", file.Name()))
 		if err != nil {
-			t.Error(err)
+			t.Fatal("error opening test file", err)
 		}
 
-		hash := media.GeneratePhash(img)
 		shouldFail := strings.Contains(file.Name(), "fail")
 		if hex.EncodeToString(hash[:]) != expect && !shouldFail {
-			t.Errorf("expected %s, got %s", expect, hex.EncodeToString(hash[:]))
-		}
-	}
-}
-
-// test hashes of all files in ./test
-func TestMakePhash(t *testing.T) {
-	files, err := os.ReadDir("./test")
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, file := range files {
-		fp := "./test/" + file.Name()
-
-		hash := media.MakePhash(fp)
-		shouldFail := strings.Contains(file.Name(), "fail")
-		if hex.EncodeToString(hash[:]) != expect && !shouldFail {
-			t.Errorf("expected %s, got %s", expect, hex.EncodeToString(hash[:]))
+			t.Errorf("expected %s, got %s", expect, hex.EncodeToString(hash))
 		}
 	}
 }

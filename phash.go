@@ -4,29 +4,42 @@ import (
 	"image"
 	"image/color"
 	"io"
-	"path/filepath"
 
 	"golang.org/x/image/draw"
 )
 
-const (
-	resizeWidth  = 16
-	resizeHeight = 16
-)
+type Phasher struct {
+	Scale int
+}
+
+func SetPhashScale(scale int)  { pHasher.Scale = scale }
+func DefaultPhasher() *Phasher { return pHasher }
+
+var pHasher *Phasher
+
+func Phash(r io.Reader) (b []byte, err error) {
+	img, err := ImageFromReader(r)
+	if err != nil {
+		return b, err
+	}
+
+	return pHasher.GeneratePhash(img), nil
+}
 
 // GeneratePhash returns a basic perceptual hash of the given image.
-func GeneratePhash(img image.Image) [32]byte {
-	resizedImg := ResizeImage(img, resizeWidth, resizeHeight)
+func (p Phasher) GeneratePhash(img image.Image) []byte {
+	resizedImg := ResizeImage(img, p.Scale, p.Scale)
 
 	grayImg := toGrayscale(resizedImg)
 	avgLight := averageBrightness(grayImg)
 
-	hash := [32]byte{}
-	for pixel := range grayImg.Pix {
-		if grayImg.Pix[pixel] >= avgLight {
-			hash[pixel/8] |= 1 << uint(pixel%8)
+	// width * height
+	hash := make([]byte, p.Scale*p.Scale/8)
+	for i, pixel := range grayImg.Pix {
+		if pixel >= avgLight {
+			hash[i/8] |= 1 << uint(i%8)
 		} else {
-			hash[pixel/8] &= ^(1 << uint(pixel%8))
+			hash[i/8] &= ^(1 << uint(i%8))
 		}
 	}
 
@@ -66,28 +79,17 @@ func averageBrightness(img *image.Gray) uint8 {
 	return uint8(total)
 }
 
-// LoadImage loads an image from disk.
-func DecodeToImage(r io.Reader) image.Image {
-	img, _, err := image.Decode(r)
-	if err != nil {
-		panic(err)
-	}
-
-	return img
-}
-
-func IsHashable(path string) bool {
-	ext := filepath.Ext(path)
-	mt := MediaType(ext)
-	return mt >= StdImage && mt <= Video
-}
-
-func MakePhash(filename string) []byte {
+func MakePhash(filename string) (b []byte, err error) {
 	img, err := OpenImage(filename)
 	if err != nil {
-		panic(err)
+		return b, err
 	}
 
-	hash := GeneratePhash(img)
-	return hash[:]
+	return pHasher.GeneratePhash(img), nil
+}
+
+func init() {
+	pHasher = &Phasher{
+		Scale: 16,
+	}
 }
