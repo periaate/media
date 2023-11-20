@@ -8,6 +8,17 @@ import (
 	"golang.org/x/image/draw"
 )
 
+func MakeThumbFromFile(filepath string, out io.Writer, maxDimension int) error {
+	img, err := OpenImage(filepath)
+	if err != nil {
+		return err
+	}
+	if 0 >= maxDimension {
+		maxDimension = 64
+	}
+	return ReduceImageSize(img, out, maxDimension)
+}
+
 func MakeThumb(in io.Reader, out io.Writer, maxDimension int) error {
 	img, err := ImageFromReader(in)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/gabriel-vasile/mimetype"
 )
@@ -49,6 +50,28 @@ func OpenImage(filename string) (img image.Image, err error) {
 	}
 	defer f.Close()
 
+	ext := filepath.Ext(filename)
+	std, ok := supported[ext]
+
+	if ok && !std {
+		fmt.Println(ext, std, ok, ok && !std)
+		b, err := io.ReadAll(f)
+		if err != nil {
+			return nil, err
+		}
+
+		w := bytes.NewBuffer(b)
+
+		tw := &bytes.Buffer{}
+		fmt.Println(imageWithFFMPEG(w, tw, 0), len(tw.Bytes()), len(w.Bytes()))
+
+		img, _, err = image.Decode(tw)
+		if err != nil {
+			return nil, err
+		}
+		return img, nil
+	}
+
 	return ImageFromReader(f)
 }
 
@@ -62,6 +85,7 @@ func ImageFromReader(r io.Reader) (img image.Image, err error) {
 
 func ImageFromBytes(b []byte) (img image.Image, err error) {
 	m := mimetype.Detect(b)
+	// Seems to use octet-stream for all non-image files e.g. video files
 	if m.Extension() == "octet-stream" {
 		return nil, ErrUnsupportedMIME
 	}
