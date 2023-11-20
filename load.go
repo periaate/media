@@ -54,7 +54,6 @@ func OpenImage(filename string) (img image.Image, err error) {
 	std, ok := supported[ext]
 
 	if ok && !std {
-		fmt.Println(ext, std, ok, ok && !std)
 		b, err := io.ReadAll(f)
 		if err != nil {
 			return nil, err
@@ -63,7 +62,9 @@ func OpenImage(filename string) (img image.Image, err error) {
 		w := bytes.NewBuffer(b)
 
 		tw := &bytes.Buffer{}
-		fmt.Println(imageWithFFMPEG(w, tw, 0), len(tw.Bytes()), len(w.Bytes()))
+		if err = imageWithFFMPEG(w, tw, 0); err != nil {
+			return nil, err
+		}
 
 		img, _, err = image.Decode(tw)
 		if err != nil {
