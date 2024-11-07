@@ -3,38 +3,18 @@ package media
 import (
 	"image"
 	"image/color"
-	"io"
-
-	"golang.org/x/image/draw"
 )
 
-type Phasher struct {
-	Scale int
-}
-
-func SetPhashScale(scale int)  { pHasher.Scale = scale }
-func DefaultPhasher() *Phasher { return pHasher }
-
-var pHasher *Phasher
-
-func Phash(r io.Reader) (b []byte, err error) {
-	img, err := ImageFromReader(r)
-	if err != nil {
-		return b, err
-	}
-
-	return pHasher.GeneratePhash(img), nil
-}
-
 // GeneratePhash returns a basic perceptual hash of the given image.
-func (p Phasher) GeneratePhash(img image.Image) []byte {
-	resizedImg := ResizeImage(img, p.Scale, p.Scale)
+func GeneratePhash(img image.Image, scale int) []byte {
+	resizedImg := ResizeImage(img, scale, scale)
+	Draw(img, resizedImg, false)
 
 	grayImg := toGrayscale(resizedImg)
 	avgLight := averageBrightness(grayImg)
 
 	// width * height
-	hash := make([]byte, p.Scale*p.Scale/8)
+	hash := make([]byte, scale*scale/8)
 	for i, pixel := range grayImg.Pix {
 		if pixel >= avgLight {
 			hash[i/8] |= 1 << uint(i%8)
@@ -47,10 +27,8 @@ func (p Phasher) GeneratePhash(img image.Image) []byte {
 }
 
 // ResizeImage resizes the given image to the specified width and height.
-func ResizeImage(img image.Image, width, height int) image.Image {
-	dst := image.NewRGBA(image.Rect(0, 0, width, height))
-	draw.NearestNeighbor.Scale(dst, dst.Rect, img, img.Bounds(), draw.Over, nil)
-	return dst
+func ResizeImage(img image.Image, width, height int) *image.RGBA {
+	return image.NewRGBA(image.Rect(0, 0, width, height))
 }
 
 // toGrayscale converts the given image to grayscale.
@@ -77,19 +55,4 @@ func averageBrightness(img *image.Gray) uint8 {
 	}
 
 	return uint8(total)
-}
-
-func MakePhash(filename string) (b []byte, err error) {
-	img, err := OpenImage(filename)
-	if err != nil {
-		return b, err
-	}
-
-	return pHasher.GeneratePhash(img), nil
-}
-
-func init() {
-	pHasher = &Phasher{
-		Scale: 16,
-	}
 }

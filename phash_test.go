@@ -22,10 +22,17 @@ func TestPerceptualHash(t *testing.T) {
 	}
 
 	for _, file := range files {
-		hash, err := MakePhash(path.Join("./test", file.Name()))
+		file, err := os.Open(path.Join("./test", file.Name()))
 		if err != nil {
 			t.Fatal("error opening test file", err)
 		}
+
+		img, err := ImageFromReader(file)
+		if err != nil {
+			t.Fatal("error reading file to image", err)
+		}
+
+		hash := GeneratePhash(img, 16)
 
 		shouldFail := strings.Contains(file.Name(), "fail")
 		if hex.EncodeToString(hash[:]) != expect && !shouldFail {
