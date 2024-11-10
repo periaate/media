@@ -39,7 +39,26 @@ func CapImageSize(img image.Image, maxSize int) *image.RGBA {
 		}
 	}
 
-	// Create a new image with the calculated dimensions
+	dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+	return dst
+}
+
+// MinImageSize cap the smaller dimension to maxSize while maintaining aspect ration.
+func MinImageSize(img image.Image, maxSize int) *image.RGBA {
+	srcWidth := img.Bounds().Dx()
+	srcHeight := img.Bounds().Dy()
+	newWidth, newHeight := srcWidth, srcHeight
+
+	if srcWidth > maxSize || srcHeight > maxSize {
+		if srcWidth < srcHeight {
+			newWidth = maxSize
+			newHeight = (srcHeight * maxSize) / srcWidth
+		} else {
+			newHeight = maxSize
+			newWidth = (srcWidth * maxSize) / srcHeight
+		}
+	}
+
 	dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
 	return dst
 }
